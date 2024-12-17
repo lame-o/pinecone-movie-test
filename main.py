@@ -7,29 +7,29 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Initialize OpenAI and Pinecone
-openai.api_key = os.getenv('OPENAI_API_KEY')
+client = openai.OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 pc = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))
 
 def create_embedding(text):
     """Create an embedding using OpenAI's text-embedding-ada-002 model"""
-    response = openai.Embedding.create(
+    response = client.embeddings.create(
         model="text-embedding-ada-002",
         input=text
     )
-    return response['data'][0]['embedding']
+    return response.data[0].embedding
 
 def get_movie_recommendation(query, movie_description):
     """Get a movie recommendation using GPT-4"""
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-4",
         messages=[
             {"role": "system", "content": "You are a helpful movie recommendation assistant."},
-            {"role": "user", "content": f"Based on this movie description: '{movie_description}'\nWhy would someone interested in '{query}' like or dislike this movie? Keep it brief."}
+            {"role": "user", "content": f"Based on this movie description: {movie_description}\n\nExplain why this movie might be a good match for someone looking for: {query}"}
         ],
         temperature=0.7,
         max_tokens=150
     )
-    return response['choices'][0]['message']['content']
+    return response.choices[0].message.content
 
 # Create or get index
 index_name = "movie-recommendations"
